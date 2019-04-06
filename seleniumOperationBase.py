@@ -54,7 +54,7 @@ class SeleniumOperationBase:
         try:
             time.sleep(waitTime)
             self.driver.find_element_by_xpath(webElement).click()
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {}'.format(err))
             self.getScreenShot()
@@ -70,7 +70,7 @@ class SeleniumOperationBase:
             time.sleep(waitTime)
             self.wait.until(expected_conditions.element_to_be_clickable((By.XPATH,webElement)))
             self.driver.find_element_by_xpath(webElement).click()
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {}'.format(err))
             self.getScreenShot()
@@ -89,7 +89,7 @@ class SeleniumOperationBase:
             target = self.driver.find_element_by_xpath(webElement)
             actions = ActionChains(self.driver)
             actions.click(target).move_by_offset(10,10).perform()
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
             self.getScreenShot()
@@ -106,7 +106,7 @@ class SeleniumOperationBase:
             target = self.driver.find_element_by_xpath(webElement)
             actions = ActionChains(self.driver)
             actions.click(target).move_by_offset(10,10).perform()
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
             self.getScreenShot()
@@ -121,7 +121,7 @@ class SeleniumOperationBase:
             time.sleep(waitTime)
             self.driver.find_element_by_xpath(webElement).clear()
             self.driver.find_element_by_xpath(webElement).send_keys(sendTexts)
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('テキスト送信失敗:'+webElement)
             self.log.error('例外発生 {}'.format(err))
             self.getScreenShot()
@@ -137,7 +137,7 @@ class SeleniumOperationBase:
             self.wait.until(expected_conditions.element_to_be_clickable((By.XPATH,webElement)))
             self.driver.find_element_by_xpath(webElement).clear()
             self.driver.find_element_by_xpath(webElement).send_keys(sendTexts)
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('テキスト送信失敗:'+webElement)
             self.log.error('例外発生 {}'.format(err))
             self.getScreenShot()
@@ -151,7 +151,7 @@ class SeleniumOperationBase:
         try:
             time.sleep(waitTime)
             self.wait.until(expected_conditions.visibility_of_element_located((By.XPATH,webElement)))
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('要素待機失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
             self.getScreenShot()
@@ -160,6 +160,34 @@ class SeleniumOperationBase:
             self.outputException(webElement)
             raise
     
+    # 画面要素が重なっている箇所に対してクリック処理を行う
+    def webElementClickOverlay(self,webElement):
+        try:
+            target = self.driver.find_element_by_xpath(webElement)
+            self.driver.execute_script("arguments[0].click();", target)
+        except SystemError as err:
+            self.log.error('画面要素押下失敗:'+webElement)
+            self.log.error('例外発生 {0}'.format(err))
+            self.getScreenShot()
+            raise
+        except:
+            self.outputException(webElement)
+            raise
+
+    # 画面のすべての要素が読み込まれるまで待機をする
+    def waitWebElementsRead(self,waitTime=0):
+        try:
+            time.sleep(waitTime)
+            self.wait.until(expected_conditions.presence_of_all_elements_located)
+        except SystemError as err:
+            self.log.error('要素待機失敗')
+            self.log.error('例外発生 {0}'.format(err))
+            self.getScreenShot()
+            raise
+        except:
+            self.outputException('画面読み込み中の異常')
+            raise
+
     # 指定した要素が存在するかを確認する要素が存在するとTrue
     def existenceWebElements(self,webElement,waitTime=0):
         time.sleep(waitTime)
@@ -219,7 +247,7 @@ class SeleniumOperationBase:
             inputLabel=self.driver.find_element_by_xpath(webElement)
             self.driver.execute_script("arguments[0].scrollIntoView();", inputLabel)
 
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面スクロール失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
             self.getScreenShot()
@@ -240,7 +268,7 @@ class SeleniumOperationBase:
         try:
             self.driver.execute_script("window.scrollTo(0, window.pageYOffset +"+str(offset)+")" )
 
-        except RuntimeError as err:
+        except SystemError as err:
             self.log.error('画面スクロール失敗:'+str(offset))
             self.log.error('例外発生 {0}'.format(err))
             self.getScreenShot()
