@@ -17,6 +17,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.common.exceptions import MoveTargetOutOfBoundsException
+from selenium.common.exceptions import TimeoutException
+
 import traceback
 
 SCREEN_SHOT_NAME='screenShot_{0}.png'
@@ -146,6 +149,40 @@ class SeleniumOperationBase:
             self.outputException(webElement)
             raise
 
+    # テキストを入力後エンターキーを押す 要素が表示されるまで20秒待つ さらに待ち時間が必要な場合は指定を行う
+    def sendTextAndEnterWaitDisplay(self,webElement,sendTexts,waitTime=0):
+        try:
+            time.sleep(waitTime)
+            self.wait.until(expected_conditions.element_to_be_clickable((By.XPATH,webElement)))
+            self.driver.find_element_by_xpath(webElement).clear()
+            self.driver.find_element_by_xpath(webElement).send_keys(sendTexts,Keys.ENTER)
+        except SystemError as err:
+            self.log.error('テキスト送信失敗:'+webElement)
+            self.log.error('例外発生 {0}'.format(err))
+            self.getScreenShot()
+            raise
+        except:
+            self.outputException(webElement)
+            raise
+
+    # プルダウンを選択する 要素が表示されるまで20秒待つ さらに待ち時間が必要な場合は指定を行う
+    def selectPullDownWaitDisplay(self,webElement,inputValue,waitTime=0):
+        try:
+            time.sleep(waitTime)
+            self.wait.until(expected_conditions.element_to_be_clickable((By.XPATH,webElement)))
+            selectList=self.driver.find_element_by_xpath(webElement)
+            selectForm=Select(selectList)
+            # 画面に表示されるプルダウンのテキストで選択を行う
+            selectForm.select_by_visible_text(inputValue)
+        except SystemError as err:
+            self.log.error('テキスト送信失敗:'+webElement)
+            self.log.error('例外発生 {}'.format(err))
+            self.getScreenShot()
+            raise
+        except:
+            self.outputException(webElement)
+            raise
+
     # 指定した要素が表示されるまで待機する
     def waitWebElementVisibility(self,webElement,waitTime=0):
         try:
@@ -262,6 +299,23 @@ class SeleniumOperationBase:
         self.driver.execute_script("arguments[0].scrollIntoView();", webElement)
         self.adjustScroll(-10)
         self.getScreenShot(screenShotName)
+    # 指定した要素の文字列を返す ラベルを確認するときに使用する
+    def getWebElementTextWaitDisplay(self,webElement,waitTime=0):
+        try:
+            time.sleep(waitTime)
+            self.wait.until(expected_conditions.visibility_of_element_located((By.XPATH,webElement)))
+            return self.driver.find_element_by_xpath(webElement).text
+        except TimeoutException:
+            # 要素が取れないときは空文字を返す
+            return ''
+        except SystemError as err:
+            self.log.error('要素取得失敗:'+webElement)
+            self.log.error('例外発生 {0}'.format(err))
+            self.getScreenShot()
+            raise
+        except:
+            self.outputException('画面読み込み中の異常')
+            raise
 
     # 画面をスクロールさせる
     def adjustScroll(self,offset):
