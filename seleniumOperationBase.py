@@ -18,7 +18,7 @@ from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.common.exceptions import MoveTargetOutOfBoundsException
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException,StaleElementReferenceException
 
 import traceback
 
@@ -57,6 +57,10 @@ class SeleniumOperationBase:
         try:
             time.sleep(waitTime)
             self.driver.find_element_by_xpath(webElement).click()
+        except StaleElementReferenceException:
+            # 画面描画前に押下してしまったときの対応
+            time.sleep(1)
+            self.driver.find_element_by_xpath(webElement).click()
         except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {}'.format(err))
@@ -72,6 +76,10 @@ class SeleniumOperationBase:
         try:
             time.sleep(waitTime)
             self.wait.until(expected_conditions.element_to_be_clickable((By.XPATH,webElement)))
+            self.driver.find_element_by_xpath(webElement).click()
+        except StaleElementReferenceException:
+            # 画面描画前に押下してしまったときの対応
+            time.sleep(1)
             self.driver.find_element_by_xpath(webElement).click()
         except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
@@ -92,6 +100,11 @@ class SeleniumOperationBase:
             target = self.driver.find_element_by_xpath(webElement)
             actions = ActionChains(self.driver)
             actions.click(target).move_by_offset(10,10).perform()
+        except MoveTargetOutOfBoundsException :
+                # 要素が範囲外のときは一度スクロール処理を入れる
+                self.moveScroll(webElement)
+                time.sleep(1)
+                actions.click(target).move_by_offset(10,10).perform()
         except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
@@ -109,6 +122,11 @@ class SeleniumOperationBase:
             target = self.driver.find_element_by_xpath(webElement)
             actions = ActionChains(self.driver)
             actions.click(target).move_by_offset(10,10).perform()
+        except MoveTargetOutOfBoundsException :
+                # 要素が範囲外のときは一度スクロール処理を入れる
+                self.moveScroll(webElement)
+                time.sleep(1)
+                actions.click(target).move_by_offset(10,10).perform()
         except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
@@ -202,6 +220,10 @@ class SeleniumOperationBase:
         try:
             target = self.driver.find_element_by_xpath(webElement)
             self.driver.execute_script("arguments[0].click();", target)
+        except StaleElementReferenceException:
+            # 画面描画前に押下してしまったときの対応
+            time.sleep(1)
+            self.driver.execute_script("arguments[0].click();", webElement)
         except SystemError as err:
             self.log.error('画面要素押下失敗:'+webElement)
             self.log.error('例外発生 {0}'.format(err))
