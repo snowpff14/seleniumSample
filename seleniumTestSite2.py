@@ -1,5 +1,6 @@
 import os
 import time
+import traceback
 from datetime import datetime
 from tkinter import Tk, messagebox
 
@@ -151,7 +152,8 @@ class TestSiteOrder(SeleniumOperationBase):
                 super().log.error('画面構成が想定外のため失敗:')
                 super().log.error(data)
                 super().getScreenShot(screenShotName='ErrorInfo',sleepTime=2)
-            except TimeoutError :
+            except  :
+                super().log.error(traceback.format_exc())
                 super().log.error('登録失敗:')
                 super().log.error(data)
                 super().getScreenShot(screenShotName='ErrorInfo',sleepTime=2)
